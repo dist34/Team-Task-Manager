@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.625rem;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #0f0f14;
+    color: #e8e8f0;
+    font-family: 'Sora', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: #6366f1;
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1a1a26;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #3a3a52;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-[#16161f] border border-[#2a2a3d] rounded-xl;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 hover:bg-brand-500 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-[#2a2a3d] hover:bg-[#333348] text-[#c8c8e0] font-medium px-4 py-2 rounded-lg transition-colors duration-150;
+  }
+
+  .btn-danger {
+    @apply bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 font-medium px-4 py-2 rounded-lg transition-colors duration-150;
+  }
+
+  .input {
+    @apply bg-[#1e1e2e] border border-[#2a2a3d] text-[#e8e8f0] placeholder-[#5a5a7a] rounded-lg px-3 py-2 w-full focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 transition-colors duration-150;
+  }
+
+  .label {
+    @apply text-sm font-medium text-[#a0a0c0] mb-1 block;
+  }
+
+  .badge-todo {
+    @apply bg-slate-700/50 text-slate-300 text-xs font-medium px-2 py-0.5 rounded-full border border-slate-600/30;
+  }
+
+  .badge-in-progress {
+    @apply bg-amber-500/15 text-amber-300 text-xs font-medium px-2 py-0.5 rounded-full border border-amber-500/30;
+  }
+
+  .badge-done {
+    @apply bg-emerald-500/15 text-emerald-300 text-xs font-medium px-2 py-0.5 rounded-full border border-emerald-500/30;
+  }
+
+  .badge-overdue {
+    @apply bg-red-500/15 text-red-300 text-xs font-medium px-2 py-0.5 rounded-full border border-red-500/30;
+  }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+/* Spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2a2a3d;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
