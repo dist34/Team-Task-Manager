@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // ✅ ADD THIS
 
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
@@ -21,6 +22,9 @@ app.use(cors({
 
 app.use(express.json());
 
+// ✅ Serve frontend build (ADD THIS)
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -32,7 +36,12 @@ app.use('/projects', projectRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/dashboard', dashboardRoutes);
 
-// 404 handler
+// ✅ React fallback (ADD THIS BEFORE 404)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
+// 404 handler (KEEP BUT AFTER React fallback)
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
