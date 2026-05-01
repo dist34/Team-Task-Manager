@@ -24,7 +24,7 @@ const authMiddleware = async (req, res, next) => {
     if (userData) {
       req.user = userData;
     } else {
-      // User exists in auth but not in users table yet
+      
       req.user = {
         id: user.id,
         email: user.email,

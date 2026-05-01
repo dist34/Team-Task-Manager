@@ -43,7 +43,8 @@ export function AuthProvider({ children }) {
       email,
       password,
       options: {
-        data: { name } // ✅ name saved in Supabase metadata → trigger picks it up
+        data: { name },
+        emailRedirectTo: window.location.origin // ✅ FIX
       }
     })
     if (error) throw error
