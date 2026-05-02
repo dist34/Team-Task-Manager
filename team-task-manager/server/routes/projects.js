@@ -16,12 +16,12 @@ router.post('/', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { data, error } = await supabase
       .from('projects')
       .insert({ name: name.trim(), created_by: req.user.id })
-      .select()
+      .select('*, users!projects_created_by_fkey(email, name)')
       .single();
 
     if (error) throw error;
 
-    // Auto-add creator as project member with admin role
+    // Auto-add creator as project member
     await supabase.from('project_members').insert({
       project_id: data.id,
       user_id: req.user.id,
@@ -35,13 +35,10 @@ router.post('/', authMiddleware, roleMiddleware('admin'), async (req, res) => {
   }
 });
 
-// GET /projects - user-specific (admin sees all they created, members see their projects)
+// GET /projects
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    let query;
-
     if (req.user.role === 'admin') {
-      // Admins see projects they created OR are members of
       const { data: memberProjects } = await supabase
         .from('project_members')
         .select('project_id')
@@ -49,18 +46,19 @@ router.get('/', authMiddleware, async (req, res) => {
 
       const projectIds = (memberProjects || []).map(m => m.project_id);
 
+      if (projectIds.length === 0) return res.json([]);
+
       const { data, error } = await supabase
         .from('projects')
-        .select('*, users!projects_created_by_fkey(email)')
-        .or(`created_by.eq.${req.user.id},id.in.(${projectIds.length ? projectIds.join(',') : 'null'})`);
+        .select('*, users!projects_created_by_fkey(email, name)')
+        .in('id', projectIds);
 
       if (error) throw error;
       return res.json(data);
     } else {
-      // Members see only projects they're added to
       const { data, error } = await supabase
         .from('project_members')
-        .select('project_id, projects(*, users!projects_created_by_fkey(email))')
+        .select('project_id, projects(*, users!projects_created_by_fkey(email, name))')
         .eq('user_id', req.user.id);
 
       if (error) throw error;
@@ -78,7 +76,6 @@ router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check access
     const { data: membership } = await supabase
       .from('project_members')
       .select('role')
@@ -96,15 +93,13 @@ router.get('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    // Allow if creator, member, or admin
     if (project.created_by !== req.user.id && !membership && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Get members
     const { data: members } = await supabase
       .from('project_members')
-      .select('*, users(id, email, role)')
+      .select('*, users(id, email, name, role)')
       .eq('project_id', id);
 
     res.json({ ...project, members: members || [] });
@@ -124,10 +119,10 @@ router.post('/:id/add-member', authMiddleware, roleMiddleware('admin'), async (r
       return res.status(400).json({ error: 'User email is required' });
     }
 
-    // Find user by email
+    // ✅ Find user by email
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email')
+      .select('id, email, name')
       .eq('email', email.toLowerCase().trim())
       .single();
 
@@ -150,12 +145,12 @@ router.post('/:id/add-member', authMiddleware, roleMiddleware('admin'), async (r
     const { data, error } = await supabase
       .from('project_members')
       .insert({ project_id: id, user_id: user.id, role })
-      .select()
+      .select('*, users(id, email, name, role)')
       .single();
 
     if (error) throw error;
 
-    res.status(201).json({ ...data, user });
+    res.status(201).json(data);
   } catch (err) {
     console.error('Add member error:', err);
     res.status(500).json({ error: err.message });

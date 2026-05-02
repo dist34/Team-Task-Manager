@@ -16,7 +16,7 @@ function CreateProjectModal({ onClose, onCreate }) {
     setLoading(true)
     try {
       const res = await api.post('/projects', { name })
-      onCreate(res.data)
+      onCreate(res.data) // ✅ instantly adds to list
       onClose()
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create project')
@@ -54,9 +54,18 @@ function CreateProjectModal({ onClose, onCreate }) {
             />
           </div>
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-            <button type="submit" className="btn-primary flex-1 flex items-center justify-center gap-2" disabled={loading}>
-              {loading ? <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> : null}
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-primary flex-1 flex items-center justify-center gap-2"
+              disabled={loading}
+            >
+              {loading
+                ? <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                : null
+              }
               Create Project
             </button>
           </div>
@@ -87,17 +96,28 @@ export default function ProjectsPage() {
     load()
   }, [])
 
+  // ✅ Instantly adds new project to list without refresh
+  const handleProjectCreated = (newProject) => {
+    setProjects(prev => [newProject, ...prev])
+  }
+
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Projects</h1>
           <p className="text-[#5a5a7a] mt-1 text-sm">
-            {user?.role === 'admin' ? 'Create and manage your team projects' : 'Projects you\'re a member of'}
+            {user?.role === 'admin'
+              ? 'Create and manage your team projects'
+              : "Projects you're a member of"
+            }
           </p>
         </div>
         {user?.role === 'admin' && (
-          <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center gap-2"
+          >
             <Plus size={16} />
             New Project
           </button>
@@ -117,10 +137,16 @@ export default function ProjectsPage() {
           <FolderOpen size={40} className="text-[#3a3a5a] mx-auto mb-3" />
           <h3 className="font-medium text-[#7a7a9a]">No projects yet</h3>
           <p className="text-sm text-[#4a4a6a] mt-1">
-            {user?.role === 'admin' ? 'Create your first project to get started' : 'Ask an admin to add you to a project'}
+            {user?.role === 'admin'
+              ? 'Create your first project to get started'
+              : 'Ask an admin to add you to a project'
+            }
           </p>
           {user?.role === 'admin' && (
-            <button onClick={() => setShowModal(true)} className="btn-primary mt-4 inline-flex items-center gap-2">
+            <button
+              onClick={() => setShowModal(true)}
+              className="btn-primary mt-4 inline-flex items-center gap-2"
+            >
               <Plus size={14} />
               Create Project
             </button>
@@ -142,7 +168,7 @@ export default function ProjectsPage() {
               </div>
               <h3 className="font-semibold text-white text-sm">{project.name}</h3>
               <p className="text-xs text-[#4a4a6a] mt-1.5">
-                by {project['users']?.email || 'Unknown'}
+                by {project.users?.name || project.users?.email || 'You'}
               </p>
             </Link>
           ))}
@@ -152,7 +178,7 @@ export default function ProjectsPage() {
       {showModal && (
         <CreateProjectModal
           onClose={() => setShowModal(false)}
-          onCreate={(p) => setProjects(prev => [p, ...prev])}
+          onCreate={handleProjectCreated}
         />
       )}
     </div>
