@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
       password,
       options: {
         data: { name },
-        emailRedirectTo: window.location.origin // ✅ FIX
+        emailRedirectTo: `${window.location.origin}/verified` // ✅ redirects to /verified
       }
     })
     if (error) throw error
