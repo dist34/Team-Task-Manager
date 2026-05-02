@@ -391,15 +391,24 @@ export default function ProjectDetailPage() {
         <AddMemberModal
           projectId={id}
           onClose={() => setShowAddMember(false)}
-          onAdd={(m) => setProject(p => ({ ...p, members: [...p.members, m] }))}
+          onAdd={() => {
+            api.get(`/projects/${id}`).then(res => {
+              setProject(res.data)
+            })
+          }}
         />
       )}
+
       {showCreateTask && (
         <CreateTaskModal
           projectId={id}
           members={members}
           onClose={() => setShowCreateTask(false)}
-          onCreate={(t) => setTasks(ts => [t, ...ts])}
+          onCreate={() => {
+            api.get(`/tasks?project_id=${id}`).then(res => {
+              setTasks(res.data)
+            })
+          }}
         />
       )}
     </div>
