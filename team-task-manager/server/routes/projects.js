@@ -44,7 +44,10 @@ router.get('/', authMiddleware, async (req, res) => {
         .select('project_id')
         .eq('user_id', req.user.id);
 
-      const projectIds = (memberProjects || []).map(m => m.project_id);
+      // ✅ Filter out any null/invalid UUIDs
+      const projectIds = (memberProjects || [])
+        .map(m => m.project_id)
+        .filter(id => id && id !== 'null' && id !== null)
 
       if (projectIds.length === 0) return res.json([]);
 
@@ -62,7 +65,9 @@ router.get('/', authMiddleware, async (req, res) => {
         .eq('user_id', req.user.id);
 
       if (error) throw error;
-      const projects = data.map(m => m.projects).filter(Boolean);
+      const projects = data
+        .map(m => m.projects)
+        .filter(Boolean) // ✅ Filter out null projects
       return res.json(projects);
     }
   } catch (err) {
@@ -119,7 +124,6 @@ router.post('/:id/add-member', authMiddleware, roleMiddleware('admin'), async (r
       return res.status(400).json({ error: 'User email is required' });
     }
 
-    // ✅ Find user by email
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, email, name')
@@ -130,7 +134,6 @@ router.post('/:id/add-member', authMiddleware, roleMiddleware('admin'), async (r
       return res.status(404).json({ error: 'User not found. They must sign up first.' });
     }
 
-    // Check if already a member
     const { data: existing } = await supabase
       .from('project_members')
       .select('id')
